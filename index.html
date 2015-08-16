@@ -144,6 +144,21 @@
         });
       }
 
+      function getThreadSubject(thread)
+      {
+          if (thread.messages.length < 1)
+              return 'zero-thread'
+          var headers = thread.messages[0].headers;
+          for (i = 0; i < headers.length; i++)
+          {
+              var header = headers[i];
+              if (header.name == 'Subject')
+              {
+                  return header.value;
+              }
+          }
+          return 'unknown'
+      }
       /**
        * Print all threads with the keywords, or nothing at all
        *
