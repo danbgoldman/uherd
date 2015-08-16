@@ -58,7 +58,7 @@
 
       var apiKey = 'AIzaSyCSxH_RPgku5PeahJo5LWuujGgmh-kplKo';
 
-      var scopes = 'https://www.googleapis.com/auth/plus.me';
+      var scopes = 'https://www.googleapis.com/auth/plus.me https://www.googleapis.com/auth/gmail.readonly';
 
       function handleClientLoad() {
         // Step 2: Reference the API key
@@ -74,7 +74,8 @@
         var authorizeButton = document.getElementById('authorize-button');
         if (authResult && !authResult.error) {
           authorizeButton.style.visibility = 'hidden';
-          makeApiCall();
+          setupGooglePlusApi();
+          setupGmailApi()
         } else {
           authorizeButton.style.visibility = '';
           authorizeButton.onclick = handleAuthClick;
@@ -88,7 +89,7 @@
       }
 
       // Load the API and make an API call.  Display the results on the screen.
-      function makeApiCall() {
+      function setupGooglePlusApi() {
         // Step 4: Load the Google+ API
         gapi.client.load('plus', 'v1').then(function() {
           // Step 5: Assemble the API request
@@ -110,6 +111,95 @@
           });
         });
       }
+      
+      /**
+       * Load Gmail API client library. List labels once client library
+       * is loaded.
+       */
+      function setupGmailApi() {
+        gapi.client.load('gmail', 'v1', listThreads);
+      }
+
+      /**
+       * Print all Labels in the authorized user's inbox. If no labels
+       * are found an appropriate message is printed.
+       */
+      function listLabels() {
+        var request = gapi.client.gmail.users.labels.list({
+          'userId': 'me'
+        });
+
+        request.execute(function(resp) {
+          var labels = resp.labels;
+          appendPre('Labels:');
+
+          if (labels && labels.length > 0) {
+            for (i = 0; i < labels.length; i++) {
+              var label = labels[i];
+              appendPre(label.name)
+            }
+          } else {
+            appendPre('No Labels found.');
+          }
+        });
+      }
+
+      /**
+       * Print all threads with the keywords, or nothing at all
+       *
+       */
+      function listThreads() {
+          var userId = 'me';
+          var query = 'youtube';
+          var maxResults = '15';
+          
+          var callback = function(threads) {
+              if (threads && threads.length > 0) {
+                  appendPre('Threads (');
+                  appendPre(threads.length);
+                  appendPre('):');
+                  for (i = 0; i < threads.length; i++) {
+                      var thread = threads[i];
+                      appendPre(thread.snippet)
+                  }
+              }
+          }
+          var getPageOfThreads = function(request, result) {
+            request.execute(function (resp) {
+              result = result.concat(resp.threads);
+              var nextPageToken = resp.nextPageToken;
+              if (nextPageToken && result.length < maxResults) {
+                request = gapi.client.gmail.users.threads.list({
+                  'userId': userId,
+                  'q': query,
+                  'pageToken': nextPageToken,
+                    'maxResults': maxResults
+                });
+                getPageOfThreads(request, result);
+              } else {
+                callback(result);
+              }
+            });
+          };
+          var request = gapi.client.gmail.users.threads.list({
+            'userId': userId,
+            'maxResults': maxResults,
+            'q': query
+          });
+          getPageOfThreads(request, []);
+      }
+      /**
+       * Append a pre element to the body containing the given message
+       * as its text node.
+       *
+       * @param {string} message Text to be placed in pre element.
+       */
+      function appendPre(message) {
+        var pre = document.getElementById('threads');
+        var textContent = document.createTextNode(message + '\n');
+        pre.appendChild(textContent);
+      }
+      
     </script>
       
 <!--    // Step 1: Load JavaScript client library -->
@@ -158,6 +248,9 @@
           });
       </script>
 
+          <div class='col-sm-6'>
+              <div id="threads"></div>
+          </div>
 
 </body>
 </html>
