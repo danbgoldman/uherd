@@ -46,53 +46,12 @@
       <div class="starter-template">
           <h1>Have uHerd?</h1>
         <p class="lead">Create an event and invite some friends!</p>
+        <!--Add a button for the user to click to initiate auth sequence -->
+            <button id="authorize-button" style="visibility: hidden">Log into Gmail</button>
+            <div id="content"></div>
       </div>
+    </div>
 
-          <div class='col-sm-6'>
-              <div class="form-group">
-                  <label for="dateTime">Date & Time</label>
-                  <div class='input-group date' id='datetimepicker1'>
-                      <input type='text' class="form-control" id="uHerdDateTime"/>
-                      <span class="input-group-addon">
-                          <span class="glyphicon glyphicon-calendar"></span>
-                      </span>
-                  </div>
-              </div>
-              <div class="form-group">
-                  <label for="invitees">Invitees</label>
-                  <input class="typeahead form-control" type="text" id="invitees" placeholder="My friends">
-              </div>
-              <button type="submit" class="btn btn-default">Submit</button>
-          </div>
-      
-      <script type="text/javascript">
-          $(function () {
-              $('#datetimepicker1').datetimepicker();
-              
-              var planets = [ "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune" ];
-              var planets = new Bloodhound({
-                datumTokenizer: Bloodhound.tokenizers.whitespace,
-                queryTokenizer: Bloodhound.tokenizers.whitespace,
-                  local: planets
-              });
-              
-              $('#invitees').typeahead(
-                  {
-                    hint: true,
-                    highlight: true,
-                    minLength: 1
-                  },
-                  {
-                    name: 'planets',
-                    source: planets
-                  }
-              );
-          });
-      </script>
-
-<!--Add a button for the user to click to initiate auth sequence -->
-    <button id="authorize-button" style="visibility: hidden">Authorize</button>
-    <div id="content"></div>
     <script type="text/javascript">
 
       var clientId = '270879350971-7k5qv54a09ip2k6cfsd5fpaksecuk4rl.apps.googleusercontent.com';
@@ -152,8 +111,53 @@
         });
       }
     </script>
-    // Step 1: Load JavaScript client library
+      
+<!--    // Step 1: Load JavaScript client library -->
     <script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+</div>
     
+          <div class='col-sm-6'>
+              <div class="form-group">
+                  <label for="dateTime">Date & Time</label>
+                  <div class='input-group date' id='datetimepicker1'>
+                      <input type='text' class="form-control" id="uHerdDateTime"/>
+                      <span class="input-group-addon">
+                          <span class="glyphicon glyphicon-calendar"></span>
+                      </span>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="invitees">Invitees</label>
+                  <input class="typeahead form-control" type="text" id="invitees" placeholder="My friends">
+              </div>
+              <button type="submit" class="btn btn-default">Submit</button>
+          </div>
+      
+      <script type="text/javascript">
+          $(function () {
+              $('#datetimepicker1').datetimepicker();
+              
+              var planets = [ "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune" ];
+              var planets = new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.whitespace,
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                  local: planets
+              });
+              
+              $('#invitees').typeahead(
+                  {
+                    hint: true,
+                    highlight: true,
+                    minLength: 1
+                  },
+                  {
+                    name: 'planets',
+                    source: planets
+                  }
+              );
+          });
+      </script>
+
+
 </body>
 </html>
