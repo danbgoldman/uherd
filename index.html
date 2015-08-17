@@ -148,7 +148,7 @@
       {
           if (thread.messages.length < 1)
               return 'zero-thread'
-          var headers = thread.messages[0].headers;
+          var headers = thread.messages[0].payload.headers;
           for (i = 0; i < headers.length; i++)
           {
               var header = headers[i];
@@ -168,32 +168,38 @@
           var query = 'youtube';
           var maxResults = '15';
           
-          var callback = function(threads) {
+          var finalize = function(threads) {
               if (threads && threads.length > 0) {
                   appendPre('Threads (');
                   appendPre(threads.length);
                   appendPre('):');
                   for (i = 0; i < threads.length; i++) {
                       var thread = threads[i];
+                      //var subject = getThreadSubject(thread);
+                      //appendPre(subject)
                       appendPre(thread.snippet)
                   }
               }
           }
-          var getPageOfThreads = function(request, result) {
-            request.execute(function (resp) {
-              result = result.concat(resp.threads);
-              var nextPageToken = resp.nextPageToken;
-              if (nextPageToken && result.length < maxResults) {
-                request = gapi.client.gmail.users.threads.list({
-                  'userId': userId,
-                  'q': query,
-                  'pageToken': nextPageToken,
-                    'maxResults': maxResults
-                });
-                getPageOfThreads(request, result);
-              } else {
-                callback(result);
-              }
+          var getPageOfThreads = function(request) {
+            request.then(function (resp) {
+                var threads = resp.result.threads;
+                var batch = gapi.client.newBatch();
+                for (var i = 0; i < threads.length; i++) {
+                    var thread = threads[i];
+                    var request2 = gapi.client.gmail.users.threads.get({
+                        'userId': userId,
+                        'id': thread.id
+                    });
+                    batch.add(request2);
+                    request2.then(function(thread) {
+                        return function (resp2) {
+                            appendPre(getThreadSubject(resp2.result));
+                            appendPre(thread.snippet);
+                        };
+                    }(thread));
+                }
+                batch.then();
             });
           };
           var request = gapi.client.gmail.users.threads.list({
@@ -201,7 +207,7 @@
             'maxResults': maxResults,
             'q': query
           });
-          getPageOfThreads(request, []);
+          getPageOfThreads(request);
       }
       /**
        * Append a pre element to the body containing the given message
@@ -213,6 +219,7 @@
         var pre = document.getElementById('threads');
         var textContent = document.createTextNode(message + '\n');
         pre.appendChild(textContent);
+        pre.appendChild(document.createElement("br"));
       }
       
     </script>
