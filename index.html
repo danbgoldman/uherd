@@ -120,7 +120,7 @@
         gapi.client.load('gmail', 'v1', listThreads);
       }
 
-      function getThreadSubject(thread)
+      function getThreadSubjectAndCount(thread)
       {
           if (thread.messages.length < 1)
               return 'zero-thread'
@@ -130,7 +130,10 @@
               var header = headers[i];
               if (header.name == 'Subject')
               {
-                  return header.value;
+                  return {
+                      'subject':header.value,
+                      'count':thread.messages.length
+                  };
               }
           }
           return 'unknown'
@@ -163,8 +166,8 @@
                   batch.add(request2);
                   request2.then(function(thread) {
                       return function (resp2) {
-                          appendPre(getThreadSubject(resp2.result));
-                          appendPre(thread.snippet);
+                          appendThread(getThreadSubjectAndCount(resp2.result));
+                          //appendPre(thread.snippet);
                       };
                   }(thread));
               }
@@ -178,11 +181,21 @@
        *
        * @param {string} message Text to be placed in pre element.
        */
-      function appendPre(message) {
-        var pre = document.getElementById('threads');
-        var textContent = document.createTextNode(message + '\n');
-        pre.appendChild(textContent);
-        pre.appendChild(document.createElement("br"));
+      function appendThread(subjectAndCount) {
+        var threadsList = document.getElementById('threads');
+
+        var listElement = document.createElement("li");
+        listElement.setAttribute("class","list-group-item");
+
+        var badgeElement = document.createElement("span");
+        badgeElement.setAttribute("class","badge");
+        badgeElement.appendChild(document.createTextNode(subjectAndCount.count));
+        listElement.appendChild(badgeElement);
+
+        var textContent = document.createTextNode(subjectAndCount.subject + '\n');
+        listElement.appendChild(textContent);
+
+        threadsList.appendChild(listElement)
       }
       
     </script>
@@ -234,7 +247,7 @@
       </script>
 
           <div class='col-sm-6'>
-              <div id="threads"></div>
+              <ul id="threads" class="list-group"></ul>
           </div>
 
 </body>
