@@ -204,7 +204,8 @@
       }
       
       function submitEmail() {
-          var base64EncodedEmail = "RnJvbTogZGFuYmdvbGRtYW5AZ21haWwuY29tDQpUbzogZGdvbGRtYW5AYWRvYmUuY29tDQpTdWJqZWN0OiB1SGVyZCB0ZXN0DQoNCnRlc3QNCg0K";
+          var email = "From: danbgoldman@gmail.com\r\nTo: dgoldman@adobe.com\r\nSubject: uHerd test\r\n\r\ntest\r\n"
+          var base64EncodedEmail = btoa(email);
           var request = gapi.client.gmail.users.messages.send({
               'userId': 'me',
               'resource': {
