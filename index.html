@@ -58,7 +58,7 @@
 
       var apiKey = 'AIzaSyCSxH_RPgku5PeahJo5LWuujGgmh-kplKo';
 
-      var scopes = 'https://www.googleapis.com/auth/plus.me https://www.googleapis.com/auth/gmail.readonly';
+      var scopes = 'https://www.googleapis.com/auth/plus.me https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';
 
       function handleClientLoad() {
         // Step 2: Reference the API key
@@ -117,7 +117,12 @@
        * is loaded.
        */
       function setupGmailApi() {
-        gapi.client.load('gmail', 'v1', listThreads);
+        gapi.client.load('gmail', 'v1', setupGmailFunctions);
+      }
+      
+      function setupGmailFunctions() {
+          document.getElementById("submit-button").onclick = submitEmail;
+          listThreads();
       }
 
       function getThreadSubjectAndCount(thread)
@@ -198,6 +203,17 @@
         threadsList.appendChild(listElement)
       }
       
+      function submitEmail() {
+          var base64EncodedEmail = "RnJvbTogZGFuYmdvbGRtYW5AZ21haWwuY29tDQpUbzogZGdvbGRtYW5AYWRvYmUuY29tDQpTdWJqZWN0OiB1SGVyZCB0ZXN0DQoNCnRlc3QNCg0K";
+          var request = gapi.client.gmail.users.messages.send({
+              'userId': 'me',
+              'resource': {
+                    'raw': base64EncodedEmail
+              }
+          });
+          request.execute();
+      }
+      
     </script>
       
 <!--    // Step 1: Load JavaScript client library -->
@@ -218,7 +234,7 @@
                   <label for="invitees">Invitees</label>
                   <input class="typeahead form-control" type="text" id="invitees" placeholder="My friends">
               </div>
-              <button type="submit" class="btn btn-default">Submit</button>
+              <button type="submit" id="submit-button" class="btn btn-default">Submit</button>
           </div>
       
       <script type="text/javascript">
