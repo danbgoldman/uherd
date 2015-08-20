@@ -104,6 +104,7 @@
             image.src = resp.result.image.url;
             heading.appendChild(image);
             heading.appendChild(document.createTextNode(resp.result.displayName));
+            userDisplayName = resp.result.displayName;
 
             document.getElementById('content').appendChild(heading);
           }, function(reason) {
@@ -150,7 +151,7 @@
        */
       function listThreads() {
           var userId = 'me';
-          var query = 'youtube';
+          var query = 'uHerd';
           var maxResults = '15';
           
           var request = gapi.client.gmail.users.threads.list({
@@ -204,16 +205,25 @@
       }
       
       function submitEmail() {
-          var emailData = {
-              from: "danbgoldman@gmail.com",
-              to: "dgoldman@adobe.com",
-              subject: "uHerd test",
-              body: "test"
+          var recipients = document.getElementById("invitees").value;
+          if (recipients == "")
+          {
+              alert ("You need to pick invitees first!");
+              return;
           }
-          var email = "From: " + emailData.from + "\n";
-          email += "To: " + emailData.to + "\n";
-          email += "Subject: " + emailData.subject + "\n";
-          email += "\n" + emailData.body + "\n";
+          
+          var dateTime = document.getElementById("uHerdDateTime").value;
+          if (dateTime == "")
+          {
+              alert ("You need to propose a date & time first!")
+              return;
+          }
+
+          var subject = userDisplayName + " wants to invite you to an event!";
+          
+          var email = "To: " + recipients + "\n";
+          email += "Subject: " + subject + "\n";
+          email += "\n" + dateTime + "\n";
 
           var base64EncodedEmail = btoa(email);
           var request = gapi.client.gmail.users.messages.send({
@@ -222,7 +232,9 @@
                     'raw': base64EncodedEmail
               }
           });
-          request.execute();
+          
+          request.then(function() {alert("email sent!")},
+                       function() {alert("email failed to send!")});
       }
       
     </script>
