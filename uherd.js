@@ -106,8 +106,6 @@ function listThreads() {
     var query = 'uHerd';
     var maxResults = '15';
 
-    makeChat();
-
     var request = gapi.client.gmail.users.threads.list({
         'userId': userId,
         'maxResults': maxResults,
@@ -127,7 +125,7 @@ function listThreads() {
             batch.add(request2);
             request2.then(function(thread) {
                 return function(resp2) {
-                    appendThread(getThreadSubjectAndCount(resp2.result));
+                    appendThread(resp2.result);
                 };
             }(thread));
         }
@@ -143,7 +141,9 @@ function listThreads() {
  * @param {string} message Text to be placed in pre element.
  */
 
-function appendThread(subjectAndCount) {
+function appendThread(thread) {
+    var subjectAndCount = getThreadSubjectAndCount(thread);
+    
     var threadsList = document.getElementById('threads');
 
     var listElement = document.createElement("li");
@@ -157,13 +157,23 @@ function appendThread(subjectAndCount) {
     var textContent = document.createTextNode(subjectAndCount.subject + '\n');
     listElement.appendChild(textContent);
 
+    $(listElement).on("click",
+            {thread: thread,
+            listElement: listElement},
+                function(event) {
+                    listElement.setAttribute("class","list-group-item active");
+                    makeChat(thread);
+                }
+            );
+        
     threadsList.appendChild(listElement)
 }
 
 function makeChat(thread) {
 
     // detach the chat list
-    var chatList = $("#chat ul");
+    var chat = $("#chat");
+    var chatList = chat.find("ul")
     var chatParent = chatList.parent();
     chatList.detach();
     
@@ -187,6 +197,7 @@ function makeChat(thread) {
     
     // attach the chat list to the parent
     chatList.appendTo(chatParent);
+    chat.removeClass("hidden");
 }
 
 function submitEmail() {
