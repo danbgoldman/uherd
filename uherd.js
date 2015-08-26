@@ -106,6 +106,8 @@ function listThreads() {
     var query = 'uHerd';
     var maxResults = '15';
 
+    makeChat();
+
     var request = gapi.client.gmail.users.threads.list({
         'userId': userId,
         'maxResults': maxResults,
@@ -113,6 +115,7 @@ function listThreads() {
     });
 
     request.then(function(resp) {
+        if (resp.result.resultSizeEstimate == 0) return;
         var threads = resp.result.threads;
         var batch = gapi.client.newBatch();
         for (var i = 0; i < threads.length; i++) {
@@ -125,12 +128,12 @@ function listThreads() {
             request2.then(function(thread) {
                 return function(resp2) {
                     appendThread(getThreadSubjectAndCount(resp2.result));
-                    //appendPre(thread.snippet);
                 };
             }(thread));
         }
         batch.then();
-    });
+    },
+    function(resp) {/* TODO no action on failure */});
 }
 
 /**
@@ -157,6 +160,35 @@ function appendThread(subjectAndCount) {
     threadsList.appendChild(listElement)
 }
 
+function makeChat(thread) {
+
+    // detach the chat list
+    var chatList = $("#chat ul");
+    var chatParent = chatList.parent();
+    chatList.detach();
+    
+    // clear the chat list
+    var prototypeEntry = chatList.find("li").detach().eq(0);
+
+    // for each email
+    $.each(["a","b","c"], function(idx, val) {
+        // clone the prototype entry
+        var entry = prototypeEntry.clone()
+        
+        // replace the icon, name, time, and contents
+        entry.find("p").text(val);
+        
+        // attach to the chat list
+        entry.appendTo(chatList);
+        
+        // make it visible
+        // TODO
+    });
+    
+    // attach the chat list to the parent
+    chatList.appendTo(chatParent);
+}
+
 function submitEmail() {
     var recipients = document.getElementById("invitees").value;
     if (recipients == "") {
@@ -170,7 +202,7 @@ function submitEmail() {
         return;
     }
 
-    var subject = userDisplayName + " wants to invite you to an event!";
+    var subject = userDisplayName + " invited you to an event with uHerd!";
 
     var email = "To: " + recipients + "\n";
     email += "Subject: " + subject + "\n";
