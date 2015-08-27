@@ -80,20 +80,17 @@ function setupGmailFunctions() {
     listThreads();
 }
 
-function getThreadSubjectAndCount(thread) {
-    if (thread.messages.length < 1)
-        return 'zero-thread'
-    var headers = thread.messages[0].payload.headers;
-    for (i = 0; i < headers.length; i++) {
+function getMessageHeader(message,label)
+{
+    var headers = message.payload.headers;
+    var length = headers.length;
+    for (i = 0; i < length; i++)
+    {
         var header = headers[i];
-        if (header.name == 'Subject') {
-            return {
-                'subject': header.value,
-                'count': thread.messages.length
-            };
-        }
+        if (header.name == label)
+            return header.value;
     }
-    return 'unknown'
+    return null;
 }
 
 /**
@@ -142,8 +139,6 @@ function listThreads() {
  */
 
 function appendThread(thread) {
-    var subjectAndCount = getThreadSubjectAndCount(thread);
-    
     var threadsList = document.getElementById('threads');
 
     var listElement = document.createElement("li");
@@ -151,10 +146,10 @@ function appendThread(thread) {
 
     var badgeElement = document.createElement("span");
     badgeElement.setAttribute("class", "badge");
-    badgeElement.appendChild(document.createTextNode(subjectAndCount.count));
+    badgeElement.appendChild(document.createTextNode(thread.messages.length));
     listElement.appendChild(badgeElement);
 
-    var textContent = document.createTextNode(subjectAndCount.subject + '\n');
+    var textContent = document.createTextNode(getMessageHeader(thread.messages[0],'Subject') + '\n');
     listElement.appendChild(textContent);
 
     $(listElement).on("click",
@@ -169,6 +164,16 @@ function appendThread(thread) {
     threadsList.appendChild(listElement)
 }
 
+function extractChatData(message)
+{
+    result = {};
+    result.text = atob(message.payload.body.data);
+    result.author = getMessageHeader(message,"From");
+    result.date = new Date(getMessageHeader(message,"Date"));
+    result.isMe = ($.inArray("SENT",message.labels) != -1);
+    return result;
+}
+
 function makeChat(thread) {
 
     // detach the chat list
@@ -181,12 +186,16 @@ function makeChat(thread) {
     var prototypeEntry = chatList.find("li").detach().eq(0);
 
     // for each email
-    $.each(["a","b","c"], function(idx, val) {
+    $.each(thread.messages, function(idx, message) {
         // clone the prototype entry
-        var entry = prototypeEntry.clone()
-        
+        var entry = prototypeEntry.clone();
+
         // replace the icon, name, time, and contents
-        entry.find("p").text(val);
+        var chatData = extractChatData(message);
+        entry.find("p").text(chatData.text);
+        entry.find("strong").text(chatData.author);
+        var agoText = moment(chatData.date).fromNow();
+        entry.find("span.time").text(agoText);
         
         // attach to the chat list
         entry.appendTo(chatList);
